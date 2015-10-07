@@ -9,7 +9,7 @@ class Turret(BaseTurret):
         """The main run method
         """
         if 'rampup' in self.config:
-            timeout = float(self.config['rampup'] / self.config['canons'])
+            timeout = float(self.config['rampup'] / self.config['canons']) * 1000
         else:
             timeout = 10
         while self.run_loop:
