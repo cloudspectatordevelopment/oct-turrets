@@ -6,16 +6,20 @@ class Turret(BaseTurret):
     """This class represent the classic turret for oct
     """
     def run(self):
+        """The main run method
+        """
         if 'rampup' in self.config:
             timeout = float(self.config['rampup'] / self.config['canons'])
         else:
-            timeout = None
+            timeout = 10
         while self.run_loop:
-            if len(self.canons <= self.config['canons']):
+            if len(self.canons) <= self.config['canons']:
                 canon = Canon(self.start_time, self.config['run_time'], self.script_module)
                 canon.daemon = True
                 self.canons.append(canon)
                 canon.start()
+            else:
+                timeout = None
             socks = dict(self.poller.poll(timeout))
             if self.master_publisher in socks:
                 print(self.master_publisher.recv_json())
