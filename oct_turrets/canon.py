@@ -14,16 +14,16 @@ class Canon(BaseCanon):
 
         while elapsed < self.run_time:
             error = ''
-            start = time.time()
 
             trans.setup()
+            start = time.time()
             try:
                 trans.run()
             except Exception as e:
                 error = str(e)
+            scriptrun_time = time.time() - start
             trans.tear_down()
 
-            scriptrun_time = time.time() - start
             elapsed = time.time() - self.start_time
 
             epoch = time.mktime(time.localtime())

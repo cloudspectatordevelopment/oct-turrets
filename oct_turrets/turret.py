@@ -5,6 +5,16 @@ from canon import Canon
 class Turret(BaseTurret):
     """This class represent the classic turret for oct
     """
+    def start(self):
+        """Start the turret and wait for the master to run the test
+        """
+        while self.start_loop:
+            msg = self.master_publisher.recv_json()
+            if 'command' in msg and msg['command'] == 'start':
+                print("Starting the test")
+                self.run()
+                self.start_loop = False
+
     def run(self):
         """The main run method
         """

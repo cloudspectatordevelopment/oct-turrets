@@ -16,8 +16,9 @@ class BaseTurret(object):
     def __init__(self, hq_address, hq_pub_port, hq_rc_port, script_file, config_file):
         self.canons = []
         self.script_module = load_file(script_file)
-        self.start_time = time.time()
+        self.start_time = None
         self.run_loop = True
+        self.start_loop = True
 
         with open(config_file) as f:
             self.config = json.load(f)
@@ -36,6 +37,11 @@ class BaseTurret(object):
 
         self.poller.register(self.local_result, zmq.POLLIN)
         self.poller.register(self.master_publisher, zmq.POLLIN)
+
+    def start(self):
+        """Start the turret and wait for the master to call the run method
+        """
+        raise NotImplementedError("Start method must be implemented")
 
     def send_result(self, result):
         """Send result to the result collector
@@ -85,6 +91,11 @@ class BaseTransaction(object):
     def setup(self):
         """This method will be call before the run method, use it to setup all needed datas.
         The setup time will not be included in the scriptrun_time
+        """
+        pass
+
+    def run(self):
+        """This is the main function that will be executed for the tests
         """
         pass
 
