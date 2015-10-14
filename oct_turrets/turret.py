@@ -1,3 +1,5 @@
+import time
+
 from base import BaseTurret
 from canon import Canon
 
@@ -12,6 +14,7 @@ class Turret(BaseTurret):
             msg = self.master_publisher.recv_json()
             if 'command' in msg and msg['command'] == 'start':
                 print("Starting the test")
+                self.start_time = time.time()
                 self.run()
                 self.start_loop = False
 
