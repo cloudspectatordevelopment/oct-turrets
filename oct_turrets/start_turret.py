@@ -1,5 +1,6 @@
 import argparse
 from turret import Turret
+from zmq_helper import ZmqHelper
 
 parser = argparse.ArgumentParser(description='Give parameters for start a turret instance')
 parser.add_argument('hq_address', type=str, help='Head Quater adresse')
@@ -20,5 +21,7 @@ turret = Turret(args.hq_address, args.hq_pub_port, args.hq_rc_port, args.script_
 
 res = turret.run()
 
-print (run)
+zmqhlp = ZmqHelper(hq_address, hq_pub_port, hq_rc_port)
+
+zmqhlp.producer(res)
 
