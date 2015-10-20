@@ -1,4 +1,5 @@
 from oct.core.generic import GenericTransaction
+from oct_turrets.base import BaseTransaction
 import random
 import time
 import os
@@ -7,7 +8,7 @@ import os
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../')
 
 
-class Transaction(object):
+class Transaction(BaseTransaction):
     def __init__(self):
         pass
 

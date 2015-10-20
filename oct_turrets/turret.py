@@ -11,8 +11,10 @@ class Turret(BaseTurret):
     def start(self):
         """Start the turret and wait for the master to run the test
         """
+        print("starting turret")
         while self.start_loop:
             channel, msg = self.master_publisher.recv_multipart()
+            print(msg)
             msg = json.loads(msg)
             if 'command' in msg and msg['command'] == 'start':
                 print("Starting the test")
