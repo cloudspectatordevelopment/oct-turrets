@@ -7,9 +7,9 @@ import os
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../')
 
 
-class Transaction(GenericTransaction):
+class Transaction(object):
     def __init__(self):
-        GenericTransaction.__init__(self, CONFIG_PATH)
+        pass
 
     def run(self):
         r = random.uniform(1, 2)
