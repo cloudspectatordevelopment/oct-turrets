@@ -48,7 +48,9 @@ class Turret(BaseTurret):
             if self.master_publisher in socks:
                 print(self.master_publisher.recv_multipart())
             if self.local_result in socks:
-                self.result_collector.send_json(self.local_result.recv_json())
+                results = self.local_result.recv_json()
+                results['turret_name'] = self.config['name']
+                self.result_collector.send_json(results)
         for i in self.canons:
             i.join()
         data = self.build_status_message('ready')
