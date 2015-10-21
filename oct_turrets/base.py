@@ -13,16 +13,17 @@ class BaseTurret(object):
     :param hq_pub_port int: the port of the publish socket in the HQ
     :param hq_rc_port int: the port of the result collector in the HQ
     """
-    def __init__(self, hq_address, hq_pub_port, hq_rc_port, script_file, config_file):
+    def __init__(self, config_file):
+
+        with open(config_file) as f:
+            self.config = json.load(f)
+
         self.canons = []
-        self.script_module = load_file(script_file)
+        self.script_module = load_file(self.config['script'])
         self.start_time = None
         self.run_loop = True
         self.start_loop = True
         self.uuid = str(uuid.uuid4())
-
-        with open(config_file) as f:
-            self.config = json.load(f)
 
         context = zmq.Context()
 
@@ -31,10 +32,11 @@ class BaseTurret(object):
         self.local_result.bind("ipc://turret")
 
         self.master_publisher = context.socket(zmq.SUB)
-        self.master_publisher.connect("tcp://{}:{}".format(hq_address, hq_pub_port))
+        self.master_publisher.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_publisher']))
+        self.master_publisher.setsockopt(zmq.SUBSCRIBE, 'hq')
 
         self.result_collector = context.socket(zmq.PUSH)
-        self.result_collector.connect("tcp://{}:{}".format(hq_address, hq_rc_port))
+        self.result_collector.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc_port']))
 
         self.poller.register(self.local_result, zmq.POLLIN)
         self.poller.register(self.master_publisher, zmq.POLLIN)

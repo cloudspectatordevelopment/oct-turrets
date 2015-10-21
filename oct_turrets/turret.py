@@ -1,4 +1,5 @@
 import time
+import json
 
 from base import BaseTurret
 from canon import Canon
@@ -11,7 +12,8 @@ class Turret(BaseTurret):
         """Start the turret and wait for the master to run the test
         """
         while self.start_loop:
-            msg = self.master_publisher.recv_json()
+            channel, msg = self.master_publisher.recv_multipart()
+            msg = json.loads(msg)
             if 'command' in msg and msg['command'] == 'start':
                 print("Starting the test")
                 self.start_time = time.time()
@@ -41,7 +43,7 @@ class Turret(BaseTurret):
                 timeout = None
             socks = dict(self.poller.poll(timeout))
             if self.master_publisher in socks:
-                print(self.master_publisher.recv_json())
+                print(self.master_publisher.recv_multipart())
             if self.local_result in socks:
                 self.results_collector.send_json(self.local_result.recv_json())
         for i in self.canons:
