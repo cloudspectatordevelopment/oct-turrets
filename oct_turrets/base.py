@@ -36,7 +36,7 @@ class BaseTurret(object):
         self.master_publisher.setsockopt(zmq.SUBSCRIBE, 'hq')
 
         self.result_collector = context.socket(zmq.PUSH)
-        self.result_collector.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc_port']))
+        self.result_collector.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
 
         self.poller.register(self.local_result, zmq.POLLIN)
         self.poller.register(self.master_publisher, zmq.POLLIN)
