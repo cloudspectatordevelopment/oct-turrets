@@ -13,7 +13,7 @@ class Turret(BaseTurret):
         """
         print("starting turret")
         while self.start_loop:
-            channel, msg = self.master_publisher.recv_multipart()
+            msg = self.master_publisher.recv_string()
             print(msg)
             msg = json.loads(msg)
             if 'command' in msg and msg['command'] == 'start':
@@ -21,12 +21,12 @@ class Turret(BaseTurret):
                 self.start_time = time.time()
                 self.start_loop = False
                 data = self.build_status_message('running')
-                self.results_collector.send_json(data)
+                self.result_collector.send_json(data)
                 self.run()
             elif 'command' in msg and msg['command'] == 'status_request':
                 print("responding to master")
                 data = self.build_status_message('ready')
-                self.results_collector.send_json(data)
+                self.result_collector.send_json(data)
 
     def run(self):
         """The main run method
@@ -47,10 +47,10 @@ class Turret(BaseTurret):
             if self.master_publisher in socks:
                 print(self.master_publisher.recv_multipart())
             if self.local_result in socks:
-                self.results_collector.send_json(self.local_result.recv_json())
+                self.result_collector.send_json(self.local_result.recv_json())
         for i in self.canons:
             i.join()
         data = self.build_status_message('ready')
-        self.results_collector.send_json(data)
+        self.result_collector.send_json(data)
         self.start_loop = True
         self.start()

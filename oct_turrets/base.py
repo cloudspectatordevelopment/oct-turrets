@@ -33,7 +33,7 @@ class BaseTurret(object):
 
         self.master_publisher = context.socket(zmq.SUB)
         self.master_publisher.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_publisher']))
-        self.master_publisher.setsockopt(zmq.SUBSCRIBE, 'hq')
+        self.master_publisher.setsockopt_string(zmq.SUBSCRIBE, '')
 
         self.result_collector = context.socket(zmq.PUSH)
         self.result_collector.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
@@ -43,7 +43,7 @@ class BaseTurret(object):
 
     def build_status_message(self, status):
         data = {
-            'turret': self.config['turret'],
+            'turret': self.config['name'],
             'status': status,
             'uuid': self.uuid
         }
