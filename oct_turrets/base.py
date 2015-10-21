@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import zmq
 import json
 import uuid

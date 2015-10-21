@@ -1,16 +1,15 @@
 import argparse
 import json
 from turret import Turret
-from path import path
 # from zmq_helper import ZmqHelper
 
 parser = argparse.ArgumentParser(description='Give parameters for start a turret instance')
 parser.add_argument('config_file', type=str, help='path for config_file')
 args = parser.parse_args()
 
-conf_file = path(args.config_file).text()
+# conf_file = path(args.config_file).text()
 
-json_parsed = json.loads(conf_file)
+# json_parsed = json.loads(conf_file)
 
 # print (json_parsed['name'])
 
