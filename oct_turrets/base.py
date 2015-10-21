@@ -1,5 +1,6 @@
 import zmq
 import json
+import uuid
 from threading import Thread
 
 from utils import load_file
@@ -18,6 +19,7 @@ class BaseTurret(object):
         self.start_time = None
         self.run_loop = True
         self.start_loop = True
+        self.uuid = str(uuid.uuid4())
 
         with open(config_file) as f:
             self.config = json.load(f)
@@ -36,6 +38,14 @@ class BaseTurret(object):
 
         self.poller.register(self.local_result, zmq.POLLIN)
         self.poller.register(self.master_publisher, zmq.POLLIN)
+
+    def build_status_message(self, status):
+        data = {
+            'turret': self.config['turret'],
+            'status': status,
+            'uuid': self.uuid
+        }
+        return data
 
     def start(self):
         """Start the turret and wait for the master to call the run method

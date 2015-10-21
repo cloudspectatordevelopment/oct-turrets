@@ -15,8 +15,14 @@ class Turret(BaseTurret):
             if 'command' in msg and msg['command'] == 'start':
                 print("Starting the test")
                 self.start_time = time.time()
-                self.run()
                 self.start_loop = False
+                data = self.build_status_message('running')
+                self.results_collector.send_json(data)
+                self.run()
+            elif 'command' in msg and msg['command'] == 'status_request':
+                print("responding to master")
+                data = self.build_status_message('ready')
+                self.results_collector.send_json(data)
 
     def run(self):
         """The main run method
@@ -40,3 +46,7 @@ class Turret(BaseTurret):
                 self.results_collector.send_json(self.local_result.recv_json())
         for i in self.canons:
             i.join()
+        data = self.build_status_message('ready')
+        self.results_collector.send_json(data)
+        self.start_loop = True
+        self.start()
