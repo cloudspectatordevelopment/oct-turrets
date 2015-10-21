@@ -32,7 +32,7 @@ class BaseTurret(object):
 
         self.poller = zmq.Poller()
         self.local_result = context.socket(zmq.PULL)
-        self.local_result.bind("ipc://turret")
+        self.local_result.bind("ipc://turret-{}".format(self.uuid))
 
         self.master_publisher = context.socket(zmq.SUB)
         self.master_publisher.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_publisher']))
@@ -79,7 +79,7 @@ class BaseCanon(Thread):
     :param script_module: the module containing the test
     """
 
-    def __init__(self, start_time, run_time, script_module):
+    def __init__(self, start_time, run_time, script_module, turret_uuid):
         super(BaseCanon, self).__init__()
         self.start_time = start_time
         self.run_time = run_time
@@ -87,7 +87,7 @@ class BaseCanon(Thread):
 
         context = zmq.Context()
         self.result_socket = context.socket(zmq.PUSH)
-        self.result_socket.connect("ipc://turret")
+        self.result_socket.connect("ipc://turret-{}".format(turret_uuid))
 
     def run(self):
         """The main run method for the canon
