@@ -23,10 +23,11 @@ class Turret(BaseTurret):
                 data = self.build_status_message('running')
                 self.result_collector.send_json(data)
                 self.run()
-            elif 'command' in msg and msg['command'] == 'status_request':
+            elif 'command' in msg and msg['command'] == 'status_request' and not self.already_responded:
                 print("responding to master")
                 data = self.build_status_message('ready')
                 self.result_collector.send_json(data)
+                self.already_responded = True
 
     def run(self):
         """The main run method

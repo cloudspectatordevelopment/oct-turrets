@@ -25,6 +25,7 @@ class BaseTurret(object):
         self.start_time = None
         self.run_loop = True
         self.start_loop = True
+        self.already_responded = False
         self.uuid = str(uuid.uuid4())
 
         context = zmq.Context()
