@@ -16,6 +16,7 @@ class Turret(BaseTurret):
             msg = self.master_publisher.recv_string()
             print(msg)
             msg = json.loads(msg)
+
             if 'command' in msg and msg['command'] == 'start':
                 print("Starting the test")
                 self.start_time = time.time()
@@ -33,27 +34,45 @@ class Turret(BaseTurret):
         """The main run method
         """
         if 'rampup' in self.config:
-            timeout = float(self.config['rampup'] / self.config['canons']) * 1000
+            rampup = float(self.config['rampup']) / float(self.config['canons'])
         else:
-            timeout = 10
+            rampup = 0
+
+        last_insert = 0
+        print(rampup)
+
+        if rampup > 0 and rampup < 1:
+            timeout = rampup * 1000
+        else:
+            timeout = 1000
+
         while self.run_loop:
-            if len(self.canons) <= self.config['canons']:
-                canon = Canon(self.start_time, self.config['run_time'], self.script_module)
+            if len(self.canons) <= self.config['canons'] and time.time() - last_insert >= rampup:
+                canon = Canon(self.start_time, self.config['run_time'], self.script_module, self.uuid)
                 canon.daemon = True
                 self.canons.append(canon)
                 canon.start()
-            else:
-                timeout = None
+                last_insert = time.time()
+                print(len(self.canons))
+
             socks = dict(self.poller.poll(timeout))
             if self.master_publisher in socks:
-                print(self.master_publisher.recv_multipart())
+                data = self.master_publisher.recv_string()
+                data = json.loads(data)
+                if 'command' in data and data['command'] == 'stop':
+                    print("Exiting loop, premature stop")
+                    self.run_loop = False
+                    break
             if self.local_result in socks:
                 results = self.local_result.recv_json()
                 results['turret_name'] = self.config['name']
                 self.result_collector.send_json(results)
+
         for i in self.canons:
             i.join()
+
         data = self.build_status_message('ready')
         self.result_collector.send_json(data)
         self.start_loop = True
+        self.already_responded = False
         self.start()
