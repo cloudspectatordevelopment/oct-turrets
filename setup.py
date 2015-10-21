@@ -3,6 +3,8 @@ from setuptools import setup
 from oct_turrets import __version__
 
 
+
+
 setup(
     name='oct-turrets',
     version=__version__,
@@ -21,4 +23,7 @@ setup(
         'argparse',
         'pyzmq'
     ],
+    entry_points={'console_scripts': [
+        'oct-turrets-start = oct_turrets.start_turret:start'
+    ]},
 )
