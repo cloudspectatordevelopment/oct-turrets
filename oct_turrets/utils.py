@@ -63,7 +63,7 @@ def is_valid_conf(config_file):
 
     json_parsed = json.loads(conf_file)
 
-    if json_parsed['script']:
+    if json_parsed['script'] and os.path.isfile(os.path.abspath(json_parsed['script'])):
         return(1)
     else:
         return(0)
