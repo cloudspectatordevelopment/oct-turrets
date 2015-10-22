@@ -1,8 +1,9 @@
 import argparse
 import json
 import tarfile
-import path as path
-from turret import Turret
+import os.path
+from oct_turrets.turret import Turret
+from oct_turrets.utils import is_valid_conf
 # from zmq_helper import ZmqHelper
 
 
@@ -26,7 +27,7 @@ def start():
                 # tar_json_path = tar.extract(files_in_tarfile, "/tmp/")
                 if is_valid_conf(tar.extractfile("config.json").read()):
                     config_file = tar.extractfile("config.json").read()
-    elif args.config_file != '':
+    elif args.config_file != '' and is_valid_conf(args.config_file):
         config_file = args.config_file
     else:
         print("you need a valid config.json")
@@ -41,17 +42,3 @@ def start():
     # zmqhlp = ZmqHelper(hq_address, hq_pub_port, hq_rc_port)
 
     # zmqhlp.producer(res)
-
-
-def is_valid_conf(config_file_path):
-    # with open(config_file_path, 'r') as content_file:
-    conf_file = config_file_path
-
-    json_parsed = json.loads(conf_file)
-
-    # if json_parsed['script']:
-    #     return (1)
-
-    print (json_parsed['script'])
-
-    return (json_parsed['script'])
