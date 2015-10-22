@@ -1,8 +1,8 @@
 import time
 import json
 
-from base import BaseTurret
-from canon import Canon
+from oct_turrets.base import BaseTurret
+from oct_turrets.canon import Canon
 
 
 class Turret(BaseTurret):

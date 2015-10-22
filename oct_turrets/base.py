@@ -6,7 +6,7 @@ import uuid
 import os.path
 from threading import Thread
 
-from utils import load_file
+from oct_turrets.utils import load_file
 
 
 class BaseTurret(object):
