@@ -25,7 +25,7 @@ def start():
             files_in_tarfile = tar.getmember("config.json")
             if files_in_tarfile:
                 # tar_json_path = tar.extract(files_in_tarfile, "/tmp/")
-                if is_valid_conf(tar.extractfile("config.json").read()):
+                if is_valid_conf(tar.extractfile("config.json").read(), tar):
                     config_file = tar.extractfile("config.json").read()
     elif args.config_file != '' and is_valid_conf(args.config_file):
         config_file = args.config_file

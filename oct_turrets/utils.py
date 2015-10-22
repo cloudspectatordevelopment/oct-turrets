@@ -2,6 +2,7 @@ import os
 import imp
 import inspect
 import json
+import tarfile
 
 
 def is_test_valid(test_module):
@@ -53,13 +54,19 @@ def load_file(file_name):
     return load_module(realpath)
 
 
-def is_valid_conf(config_file):
+def is_valid_conf(config_file, tar=0):
 
     if os.path.isfile(config_file):
             with open(config_file) as f:
                 conf_file = f.read()
     else:
         conf_file = config_file
+        json_parsed = json.loads(conf_file)
+        tarinfo = tar.getmember(json_parsed['script'])
+        if tarinfo.isfile:
+            conf_file = config_file
+        else:
+            conf_file = 0
 
     json_parsed = json.loads(conf_file)
 
