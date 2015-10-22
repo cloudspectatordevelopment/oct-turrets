@@ -63,7 +63,7 @@ def is_valid_conf(config_file, tar=0):
         conf_file = config_file
         json_parsed = json.loads(conf_file)
         tarinfo = tar.getmember(json_parsed['script'])
-        if tarinfo.isfile:
+        if tarinfo.isfile():
             conf_file = config_file
         else:
             conf_file = 0
