@@ -8,31 +8,49 @@ from oct_turrets.canon import Canon
 class Turret(BaseTurret):
     """This class represent the classic turret for oct
     """
+
+    def init_commands(self):
+        """Initialize the basics commandes for the turret
+        """
+        self.commands['start'] = self.run
+        self.commands['status_request'] = self.send_status
+
+    def send_status(self, msg=None):
+        """Reply to the master by sending the current status
+        """
+        if not self.already_responded:
+            print("responding to master")
+            reply = self.build_status_message()
+            self.result_collector.send_json(reply)
+            self.already_responded = True
+
     def start(self):
         """Start the turret and wait for the master to run the test
         """
         print("starting turret")
+        self.status = "Ready"
         while self.start_loop:
-            msg = self.master_publisher.recv_string()
-            print(msg)
-            msg = json.loads(msg)
+            payload = self.master_publisher.recv_string()
+            print(payload)
+            payload = json.loads(payload)
 
-            if 'command' in msg and msg['command'] == 'start':
-                print("Starting the test")
-                self.start_time = time.time()
-                self.start_loop = False
-                data = self.build_status_message('running')
-                self.result_collector.send_json(data)
-                self.run()
-            elif 'command' in msg and msg['command'] == 'status_request' and not self.already_responded:
-                print("responding to master")
-                data = self.build_status_message('ready')
-                self.result_collector.send_json(data)
-                self.already_responded = True
+            if 'command' in payload:
+                command = self.commands.get(payload['command'])
+                if command is None:
+                    print("Unknow command received")
+                else:
+                    command(payload['msg'])
 
-    def run(self):
+    def run(self, msg=None):
         """The main run method
         """
+        print("Starting tests")
+
+        self.start_time = time.time()
+        self.start_loop = False
+        self.status = 'running'
+        self.send_status()
+
         if 'rampup' in self.config:
             rampup = float(self.config['rampup']) / float(self.config['canons'])
         else:
@@ -71,8 +89,8 @@ class Turret(BaseTurret):
         for i in self.canons:
             i.join()
 
-        data = self.build_status_message('ready')
-        self.result_collector.send_json(data)
-        self.start_loop = True
-        self.already_responded = False
-        self.start()
+        self.local_result.close()
+        # data = self.build_status_message()
+        # self.result_collector.send_json(data)
+        # self.start_loop = True
+        # self.already_responded = False

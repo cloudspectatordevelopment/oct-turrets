@@ -31,6 +31,8 @@ class BaseTurret(object):
         self.start_loop = True
         self.already_responded = False
         self.uuid = str(uuid.uuid4())
+        self.commands = {}
+        self.status = "Initialized"
 
         context = zmq.Context()
 
@@ -48,10 +50,17 @@ class BaseTurret(object):
         self.poller.register(self.local_result, zmq.POLLIN)
         self.poller.register(self.master_publisher, zmq.POLLIN)
 
-    def build_status_message(self, status):
+        self.init_commands()
+
+    def init_commands(self):
+        """Initialize the commands dictionnary. This dict will be used when master send a command to interpret them
+        """
+        pass
+
+    def build_status_message(self):
         data = {
             'turret': self.config['name'],
-            'status': status,
+            'status': self.status,
             'uuid': self.uuid
         }
         return data
