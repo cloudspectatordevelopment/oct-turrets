@@ -1,6 +1,7 @@
 import os
 import imp
 import inspect
+import json
 
 
 def is_test_valid(test_module):
@@ -50,3 +51,19 @@ def load_file(file_name):
         raise ImportError("File does not exists: {}".format(file_name))
     realpath = os.path.realpath(os.path.abspath(file_name))
     return load_module(realpath)
+
+
+def is_valid_conf(config_file):
+
+    if os.path.isfile(config_file):
+            with open(config_file) as f:
+                conf_file = f.read()
+    else:
+        conf_file = config_file
+
+    json_parsed = json.loads(conf_file)
+
+    if json_parsed['script']:
+        return(1)
+    else:
+        return(0)
