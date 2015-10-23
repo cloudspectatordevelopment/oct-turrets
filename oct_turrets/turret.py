@@ -31,15 +31,8 @@ class Turret(BaseTurret):
         self.status = "Ready"
         while self.start_loop:
             payload = self.master_publisher.recv_string()
-            print(payload)
             payload = json.loads(payload)
-
-            if 'command' in payload:
-                command = self.commands.get(payload['command'])
-                if command is None:
-                    print("Unknow command received")
-                else:
-                    command(payload['msg'])
+            self.exec_command(payload)
 
     def run(self, msg=None):
         """The main run method
@@ -65,7 +58,7 @@ class Turret(BaseTurret):
             timeout = 1000
 
         while self.run_loop:
-            if len(self.canons) <= self.config['canons'] and time.time() - last_insert >= rampup:
+            if len(self.canons) < self.config['canons'] and time.time() - last_insert >= rampup:
                 canon = Canon(self.start_time, self.config['run_time'], self.script_module, self.uuid)
                 canon.daemon = True
                 self.canons.append(canon)
@@ -77,7 +70,7 @@ class Turret(BaseTurret):
             if self.master_publisher in socks:
                 data = self.master_publisher.recv_string()
                 data = json.loads(data)
-                if 'command' in data and data['command'] == 'stop':
+                if 'command' in data and data['command'] == 'stop':  # not managed, must break the loop
                     print("Exiting loop, premature stop")
                     self.run_loop = False
                     break

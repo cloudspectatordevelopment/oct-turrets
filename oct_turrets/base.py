@@ -65,6 +65,24 @@ class BaseTurret(object):
         }
         return data
 
+    def exec_command(self, payload):
+        """Execute the given command by searching it in the self.commands property.
+
+        :param payload str: the dict containing the message from the master
+        :return: True if the command exists, false if the payload does not contain a command or the command is not found
+        :rtype: bool
+        """
+        if 'command' in payload:
+            command = self.commands.get(payload['command'])
+            if command is None:
+                print("command not found")
+                return False
+            else:
+                command(payload['msg'])
+            return True
+        print("The message does not contain a command")
+        return False
+
     def start(self):
         """Start the turret and wait for the master to call the run method
         """
