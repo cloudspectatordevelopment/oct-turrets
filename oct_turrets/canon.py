@@ -1,6 +1,6 @@
 import time
 
-from base import BaseCanon
+from oct_turrets.base import BaseCanon
 
 
 class Canon(BaseCanon):

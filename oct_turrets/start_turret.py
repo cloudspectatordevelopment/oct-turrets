@@ -1,8 +1,7 @@
 import argparse
 import json
 import tarfile
-import path as path
-from turret import Turret
+from oct_turrets.turret import Turret
 # from zmq_helper import ZmqHelper
 
 
@@ -27,8 +26,10 @@ def start():
                 if is_valid_conf("/tmp/config.json"):
                     config_file = "/tmp/config.json"
                 print(tar_json_path)
+    elif args.config_file != '':
+        config_file = args.config_file
     else:
-        print("you need a valid config.json file in your tarball ")
+        print("you need a valid config.json")
         exit(0)
 
     if args.config_file != '':
