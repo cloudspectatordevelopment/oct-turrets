@@ -22,19 +22,17 @@ def start():
             tar = tarfile.open(tar_path)
             files_in_tarfile = tar.getmember("config.json")
             if files_in_tarfile:
-                tar_json_path = tar.extract(files_in_tarfile, "/tmp/")
-                if is_valid_conf("/tmp/config.json"):
-                    config_file = "/tmp/config.json"
-                print(tar_json_path)
+                # tar_json_path = tar.extract(files_in_tarfile, "/tmp/")
+                if is_valid_conf(tar.extractfile("config.json").read()):
+                    config_file = tar.extractfile("config.json").read()
     elif args.config_file != '':
         config_file = args.config_file
     else:
         print("you need a valid config.json")
         exit(0)
 
-    if args.config_file != '':
-        config_file = args.config_file
-
+    # if args.config_file != '':
+    #     config_file = args.config_file
     turret = Turret(config_file)
 
     turret.start()
@@ -45,8 +43,8 @@ def start():
 
 
 def is_valid_conf(config_file_path):
-    with open(config_file_path, 'r') as content_file:
-        conf_file = content_file.read()
+    # with open(config_file_path, 'r') as content_file:
+    conf_file = config_file_path
 
     json_parsed = json.loads(conf_file)
 

@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import zmq
 import json
 import uuid
+import os.path
 from threading import Thread
 
 from oct_turrets.utils import load_file
@@ -17,8 +18,11 @@ class BaseTurret(object):
     """
     def __init__(self, config_file):
 
-        with open(config_file) as f:
-            self.config = json.load(f)
+        if os.path.isfile(config_file):
+            with open(config_file) as f:
+                self.config = json.load(f)
+        else:
+            self.config = json.loads(config_file)
 
         self.canons = []
         self.script_module = load_file(self.config['script'])
