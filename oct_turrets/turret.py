@@ -25,11 +25,18 @@ class Turret(BaseTurret):
             self.result_collector.send_json(reply)
             self.already_responded = True
 
+    def send_result(self, result):
+        """Update the results and send it to the hq
+        """
+        result['turret_name'] = self.config['name']
+        self.result_collector.send_json(result)
+
     def start(self):
         """Start the turret and wait for the master to run the test
         """
         print("starting turret")
         self.status = "Ready"
+        self.send_status()
         while self.start_loop:
             payload = self.master_publisher.recv_string()
             payload = json.loads(payload)
@@ -76,13 +83,15 @@ class Turret(BaseTurret):
                         break
                 if self.local_result in socks:
                     results = self.local_result.recv_json()
-                    results['turret_name'] = self.config['name']
-                    self.result_collector.send_json(results)
+                    self.send_result(results)
 
+            print("Sending stop signal to canons...")
             for i in self.canons:
                 i.run_loop = False
+            print("Waiting for all canons to finish")
             for i in self.canons:
                 i.join()
+            print("Turret shutdown")
 
         except (Exception, RuntimeError, KeyboardInterrupt) as e:
             self.status = "Aborted"

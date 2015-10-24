@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import six
 import zmq
 import json
 import uuid
@@ -30,7 +31,7 @@ class BaseTurret(object):
         self.run_loop = True
         self.start_loop = True
         self.already_responded = False
-        self.uuid = str(uuid.uuid4())
+        self.uuid = six.text_type(uuid.uuid4())
         self.commands = {}
         self.status = "Initialized"
 
@@ -43,6 +44,7 @@ class BaseTurret(object):
         self.master_publisher = context.socket(zmq.SUB)
         self.master_publisher.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_publisher']))
         self.master_publisher.setsockopt_string(zmq.SUBSCRIBE, '')
+        self.master_publisher.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
 
         self.result_collector = context.socket(zmq.PUSH)
         self.result_collector.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
