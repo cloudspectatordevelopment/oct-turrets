@@ -61,7 +61,10 @@ class BaseTurret(object):
         data = {
             'turret': self.config['name'],
             'status': self.status,
-            'uuid': self.uuid
+            'uuid': self.uuid,
+            'rampup': self.config['rampup'],
+            'script': self.config['script'],
+            'canons': self.config['canons']
         }
         return data
 
@@ -110,11 +113,11 @@ class BaseCanon(Thread):
     :param script_module: the module containing the test
     """
 
-    def __init__(self, start_time, run_time, script_module, turret_uuid):
+    def __init__(self, start_time, script_module, turret_uuid):
         super(BaseCanon, self).__init__()
         self.start_time = start_time
-        self.run_time = run_time
         self.script_module = script_module
+        self.run_loop = True
 
         context = zmq.Context()
         self.result_socket = context.socket(zmq.PUSH)

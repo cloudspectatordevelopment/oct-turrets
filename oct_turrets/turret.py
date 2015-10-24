@@ -59,7 +59,7 @@ class Turret(BaseTurret):
 
         while self.run_loop:
             if len(self.canons) < self.config['canons'] and time.time() - last_insert >= rampup:
-                canon = Canon(self.start_time, self.config['run_time'], self.script_module, self.uuid)
+                canon = Canon(self.start_time, self.script_module, self.uuid)
                 canon.daemon = True
                 self.canons.append(canon)
                 canon.start()
@@ -79,6 +79,8 @@ class Turret(BaseTurret):
                 results['turret_name'] = self.config['name']
                 self.result_collector.send_json(results)
 
+        for i in self.canons:
+            i.run_loop = False
         for i in self.canons:
             i.join()
 

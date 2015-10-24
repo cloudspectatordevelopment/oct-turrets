@@ -12,7 +12,7 @@ class Canon(BaseCanon):
         trans = self.script_module.Transaction()
         trans.custom_timers = {}
 
-        while elapsed < self.run_time:
+        while self.run_loop:
             error = ''
 
             trans.setup()
