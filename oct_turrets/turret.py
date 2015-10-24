@@ -93,7 +93,10 @@ class Turret(BaseTurret):
                 i.join()
             print("Turret shutdown")
 
-        except (Exception, RuntimeError, KeyboardInterrupt):
+        except (Exception, RuntimeError, KeyboardInterrupt) as e:
+            self.status = "Aborted"
+            print(e)
+            self.send_status()
             traceback.print_exc()
             # data = self.build_status_message()
             # self.result_collector.send_json(data)
