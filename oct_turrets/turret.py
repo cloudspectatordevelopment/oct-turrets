@@ -57,6 +57,7 @@ class Turret(BaseTurret):
         else:
             timeout = 1000
 
+    try:
         while self.run_loop:
             if len(self.canons) < self.config['canons'] and time.time() - last_insert >= rampup:
                 canon = Canon(self.start_time, self.script_module, self.uuid)
@@ -84,8 +85,14 @@ class Turret(BaseTurret):
         for i in self.canons:
             i.join()
 
-        self.local_result.close()
+    except (RuntimeError, TypeError, NameError):
+        print("Exception",RuntimeError)
         # data = self.build_status_message()
         # self.result_collector.send_json(data)
         # self.start_loop = True
         # self.already_responded = False
+
+    def stop(self, msg=None):
+        """The main stop method
+        """
+        pass
