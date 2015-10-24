@@ -86,7 +86,6 @@ class Turret(BaseTurret):
 
         except (Exception, RuntimeError, KeyboardInterrupt) as e:
             self.status = "Aborted"
-            print(e)
             self.send_status()
             traceback.print_exc()
             # data = self.build_status_message()
