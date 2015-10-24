@@ -1,5 +1,6 @@
 import time
 import json
+import traceback
 
 from oct_turrets.base import BaseTurret
 from oct_turrets.canon import Canon
@@ -50,7 +51,6 @@ class Turret(BaseTurret):
             rampup = 0
 
         last_insert = 0
-        print(rampup)
 
         if rampup > 0 and rampup < 1:
             timeout = rampup * 1000
@@ -65,7 +65,6 @@ class Turret(BaseTurret):
                     self.canons.append(canon)
                     canon.start()
                     last_insert = time.time()
-                    print(len(self.canons))
 
                 socks = dict(self.poller.poll(timeout))
                 if self.master_publisher in socks:
@@ -89,6 +88,7 @@ class Turret(BaseTurret):
             self.status = "Aborted"
             print(e)
             self.send_status()
+            traceback.print_exc()
             # data = self.build_status_message()
             # self.result_collector.send_json(data)
             # self.start_loop = True
