@@ -86,7 +86,9 @@ class Turret(BaseTurret):
                 i.join()
 
         except (Exception, RuntimeError, KeyboardInterrupt) as e:
+            self.status = "Aborted"
             print(e)
+            self.send_status()
             # data = self.build_status_message()
             # self.result_collector.send_json(data)
             # self.start_loop = True
