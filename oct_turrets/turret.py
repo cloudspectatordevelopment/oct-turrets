@@ -57,40 +57,40 @@ class Turret(BaseTurret):
         else:
             timeout = 1000
 
-    try:
-        while self.run_loop:
-            if len(self.canons) < self.config['canons'] and time.time() - last_insert >= rampup:
-                canon = Canon(self.start_time, self.script_module, self.uuid)
-                canon.daemon = True
-                self.canons.append(canon)
-                canon.start()
-                last_insert = time.time()
-                print(len(self.canons))
+        try:
+            while self.run_loop:
+                if len(self.canons) < self.config['canons'] and time.time() - last_insert >= rampup:
+                    canon = Canon(self.start_time, self.script_module, self.uuid)
+                    canon.daemon = True
+                    self.canons.append(canon)
+                    canon.start()
+                    last_insert = time.time()
+                    print(len(self.canons))
 
-            socks = dict(self.poller.poll(timeout))
-            if self.master_publisher in socks:
-                data = self.master_publisher.recv_string()
-                data = json.loads(data)
-                if 'command' in data and data['command'] == 'stop':  # not managed, must break the loop
-                    print("Exiting loop, premature stop")
-                    self.run_loop = False
-                    break
-            if self.local_result in socks:
-                results = self.local_result.recv_json()
-                results['turret_name'] = self.config['name']
-                self.result_collector.send_json(results)
+                socks = dict(self.poller.poll(timeout))
+                if self.master_publisher in socks:
+                    data = self.master_publisher.recv_string()
+                    data = json.loads(data)
+                    if 'command' in data and data['command'] == 'stop':  # not managed, must break the loop
+                        print("Exiting loop, premature stop")
+                        self.run_loop = False
+                        break
+                if self.local_result in socks:
+                    results = self.local_result.recv_json()
+                    results['turret_name'] = self.config['name']
+                    self.result_collector.send_json(results)
 
-        for i in self.canons:
-            i.run_loop = False
-        for i in self.canons:
-            i.join()
+            for i in self.canons:
+                i.run_loop = False
+            for i in self.canons:
+                i.join()
 
-    except (RuntimeError, TypeError, NameError):
-        print("Exception",RuntimeError)
-        # data = self.build_status_message()
-        # self.result_collector.send_json(data)
-        # self.start_loop = True
-        # self.already_responded = False
+        except (Exception, RuntimeError, KeyboardInterrupt) as e:
+            print(e)
+            # data = self.build_status_message()
+            # self.result_collector.send_json(data)
+            # self.start_loop = True
+            # self.already_responded = False
 
     def stop(self, msg=None):
         """The main stop method
