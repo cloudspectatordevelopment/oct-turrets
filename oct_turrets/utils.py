@@ -55,6 +55,13 @@ def load_file(file_name):
 
 
 def is_valid_conf(config_file, tar=0):
+    """Check for valid config.json and check if test script is present
+
+    :param str config_file: the full config.json path
+    :param str tar: the full tar file path
+    :return: boolean 1 true 0 false
+    :rtype: int
+    """
 
     if os.path.isfile(config_file):
             with open(config_file) as f:
