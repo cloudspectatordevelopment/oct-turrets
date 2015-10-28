@@ -25,7 +25,7 @@ class Turret(BaseTurret):
     def send_status(self, msg=None):
         """Reply to the master by sending the current status
         """
-        if not self.already_responded:
+        if not self.already_responded or self.status != self.READY:
             log.info("Sending %s status to master", self.status)
             reply = self.build_status_message()
             self.result_collector.send_json(reply)
@@ -40,13 +40,17 @@ class Turret(BaseTurret):
         """Start the turret and wait for the master to run the test
         """
         log.info("starting turret")
-        self.status = "Ready"
-        self.send_status()
+        self.status = self.READY
         while self.start_loop:
             try:
-                payload = self.master_publisher.recv_string()
-                payload = json.loads(payload)
-                self.exec_command(payload)
+                socks = dict(self.poller.poll(2000))
+                self.send_status()
+                if self.master_publisher in socks:
+                    payload = self.master_publisher.recv_string()
+                    payload = json.loads(payload)
+                    command = self.find_command(payload)
+                    if command:
+                        command(payload['msg'])
             except (Exception, KeyboardInterrupt):
                 self.close_sockets()
                 raise
@@ -54,11 +58,15 @@ class Turret(BaseTurret):
     def run(self, msg=None):
         """The main run method
         """
+        if self.status == self.RUNNING:
+            return None
+
         log.info("Starting test for turret %s", self.uuid)
 
+        self.already_responded = True
         self.start_time = time.time()
         self.start_loop = False
-        self.status = 'running'
+        self.status = self.RUNNING
         self.send_status()
 
         if 'rampup' in self.config:
@@ -91,7 +99,9 @@ class Turret(BaseTurret):
                         self.run_loop = False
                         break
                     elif 'command' in data:
-                        self.exec_command(data)
+                        command = self.find_command(data)
+                        if command:
+                            command(data['msg'])
                 if self.local_result in socks:
                     results = self.local_result.recv_json()
                     self.send_result(results)
@@ -99,7 +109,7 @@ class Turret(BaseTurret):
             self.reset_turret()
 
         except (Exception, RuntimeError, KeyboardInterrupt) as e:
-            self.status = "Aborted"
+            self.status = self.ABORTED
             log.error(e)
             self.send_status()
             traceback.print_exc()
@@ -116,7 +126,6 @@ class Turret(BaseTurret):
             i.join()
 
         self.canons = []
-        self.status = 'Ready'
         self.already_responded = False
         self.start_loop = True
         self.run_loop = True
@@ -132,6 +141,6 @@ class Turret(BaseTurret):
         """
         for i in self.canons:
             i.run_loop = False
-        self.status = 'Killed'
+        self.status = self.KILLED
         self.send_status()
         sys.exit(1)

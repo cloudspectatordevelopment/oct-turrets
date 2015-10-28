@@ -17,6 +17,13 @@ class BaseTurret(object):
     :param hq_pub_port int: the port of the publish socket in the HQ
     :param hq_rc_port int: the port of the result collector in the HQ
     """
+
+    READY = 'ready'
+    RUNNING = 'Running'
+    ABORTED = 'Aborted'
+    INIT = 'Initialized'
+    KILLED = 'Killed'
+
     def __init__(self, config_file):
 
         if os.path.isfile(config_file):
@@ -33,7 +40,7 @@ class BaseTurret(object):
         self.already_responded = False
         self.uuid = six.text_type(uuid.uuid4())
         self.commands = {}
-        self.status = "Initialized"
+        self.status = self.INIT
 
         self.setup_sockets()
 
@@ -82,7 +89,7 @@ class BaseTurret(object):
         }
         return data
 
-    def exec_command(self, payload):
+    def find_command(self, payload):
         """Execute the given command by searching it in the self.commands property.
 
         :param payload str: the dict containing the message from the master
@@ -91,14 +98,9 @@ class BaseTurret(object):
         """
         if 'command' in payload:
             command = self.commands.get(payload['command'])
-            if command is None:
-                print("command not found")
-                return False
-            else:
-                command(payload['msg'])
-            return True
+            return command
         print("The message does not contain a command")
-        return False
+        return None
 
     def start(self):
         """Start the turret and wait for the master to call the run method
