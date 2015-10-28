@@ -1,10 +1,14 @@
 import sys
 import time
 import json
+import logging
 import traceback
 
 from oct_turrets.base import BaseTurret
 from oct_turrets.canon import Canon
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 class Turret(BaseTurret):
@@ -22,7 +26,7 @@ class Turret(BaseTurret):
         """Reply to the master by sending the current status
         """
         if not self.already_responded:
-            print("Sending status to master")
+            log.info("Sending %s status to master", self.status)
             reply = self.build_status_message()
             self.result_collector.send_json(reply)
 
@@ -35,7 +39,7 @@ class Turret(BaseTurret):
     def start(self):
         """Start the turret and wait for the master to run the test
         """
-        print("starting turret")
+        log.info("starting turret")
         self.status = "Ready"
         self.send_status()
         while self.start_loop:
@@ -46,7 +50,7 @@ class Turret(BaseTurret):
     def run(self, msg=None):
         """The main run method
         """
-        print("Starting tests")
+        log.info("Starting test for turret %s", self.uuid)
 
         self.start_time = time.time()
         self.start_loop = False
@@ -79,7 +83,7 @@ class Turret(BaseTurret):
                     data = self.master_publisher.recv_string()
                     data = json.loads(data)
                     if 'command' in data and data['command'] == 'stop':  # not managed, must break the loop
-                        print("Exiting loop, premature stop")
+                        log.info("Exiting loop, premature stop")
                         self.run_loop = False
                         break
                     elif 'command' in data:
@@ -92,7 +96,7 @@ class Turret(BaseTurret):
 
         except (Exception, RuntimeError, KeyboardInterrupt) as e:
             self.status = "Aborted"
-            print(e)
+            log.error(e)
             self.send_status()
             traceback.print_exc()
             self.close_sockets()
@@ -100,7 +104,7 @@ class Turret(BaseTurret):
     def reset_turret(self):
         """Reset the turret and set it ready for the next test
         """
-        print("Sending stop signal to canons...")
+        log.info("Sending stop signal to canons...")
         for i in self.canons:
             i.run_loop = False
         print("Waiting for all canons to finish")
