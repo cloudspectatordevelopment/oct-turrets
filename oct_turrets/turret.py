@@ -1,3 +1,4 @@
+import sys
 import time
 import json
 import traceback
@@ -15,15 +16,15 @@ class Turret(BaseTurret):
         """
         self.commands['start'] = self.run
         self.commands['status_request'] = self.send_status
+        self.commands['kill'] = self.kill
 
     def send_status(self, msg=None):
         """Reply to the master by sending the current status
         """
         if not self.already_responded:
-            print("responding to master")
+            print("Sending status to master")
             reply = self.build_status_message()
             self.result_collector.send_json(reply)
-            self.already_responded = True
 
     def send_result(self, result):
         """Update the results and send it to the hq
@@ -81,29 +82,48 @@ class Turret(BaseTurret):
                         print("Exiting loop, premature stop")
                         self.run_loop = False
                         break
+                    elif 'command' in data:
+                        self.exec_command(data)
                 if self.local_result in socks:
                     results = self.local_result.recv_json()
                     self.send_result(results)
 
-            print("Sending stop signal to canons...")
-            for i in self.canons:
-                i.run_loop = False
-            print("Waiting for all canons to finish")
-            for i in self.canons:
-                i.join()
-            print("Turret shutdown")
+            self.reset_turret()
 
         except (Exception, RuntimeError, KeyboardInterrupt) as e:
             self.status = "Aborted"
             print(e)
             self.send_status()
             traceback.print_exc()
-            # data = self.build_status_message()
-            # self.result_collector.send_json(data)
-            # self.start_loop = True
-            # self.already_responded = False
+            self.close_sockets()
 
-    def stop(self, msg=None):
-        """The main stop method
+    def reset_turret(self):
+        """Reset the turret and set it ready for the next test
         """
-        pass
+        print("Sending stop signal to canons...")
+        for i in self.canons:
+            i.run_loop = False
+        print("Waiting for all canons to finish")
+        for i in self.canons:
+            i.join()
+
+        self.canons = []
+        self.status = 'Ready'
+        self.already_responded = False
+        self.start_loop = True
+        self.run_loop = True
+
+        # clear sockets
+        self.close_sockets()
+        self.setup_sockets()
+
+        self.start()
+
+    def kill(self, msg=None):
+        """Kill the turret
+        """
+        for i in self.canons:
+            i.run_loop = False
+        self.status = 'Killed'
+        self.send_status()
+        sys.exit(1)

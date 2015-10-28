@@ -35,6 +35,18 @@ class BaseTurret(object):
         self.commands = {}
         self.status = "Initialized"
 
+        self.setup_sockets()
+
+        self.init_commands()
+
+    def init_commands(self):
+        """Initialize the commands dictionnary. This dict will be used when master send a command to interpret them
+        """
+        pass
+
+    def setup_sockets(self):
+        """Init and connect all the turrets
+        """
         context = zmq.Context()
 
         self.poller = zmq.Poller()
@@ -52,12 +64,12 @@ class BaseTurret(object):
         self.poller.register(self.local_result, zmq.POLLIN)
         self.poller.register(self.master_publisher, zmq.POLLIN)
 
-        self.init_commands()
-
-    def init_commands(self):
-        """Initialize the commands dictionnary. This dict will be used when master send a command to interpret them
+    def close_sockets(self):
+        """Close all the sockets
         """
-        pass
+        self.local_result.close()
+        self.master_publisher.close()
+        self.result_collector.close()
 
     def build_status_message(self):
         data = {
