@@ -43,9 +43,13 @@ class Turret(BaseTurret):
         self.status = "Ready"
         self.send_status()
         while self.start_loop:
-            payload = self.master_publisher.recv_string()
-            payload = json.loads(payload)
-            self.exec_command(payload)
+            try:
+                payload = self.master_publisher.recv_string()
+                payload = json.loads(payload)
+                self.exec_command(payload)
+            except (Exception, KeyboardInterrupt):
+                self.close_sockets()
+                raise
 
     def run(self, msg=None):
         """The main run method
