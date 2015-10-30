@@ -24,18 +24,11 @@ class BaseTurret(object):
     INIT = 'Initialized'
     KILLED = 'Killed'
 
-    def __init__(self, config_file):
+    def __init__(self, config, script_module):
 
-        if os.path.isfile(config_file):
-            with open(config_file) as f:
-                self.config = json.load(f)
-        else:
-            self.config = json.loads(config_file)
-
-        cfg_path = os.path.dirname(config_file)
-
+        self.config = config
         self.canons = []
-        self.script_module = load_file(os.path.join(cfg_path, self.config['script']))
+        self.script_module = script_module
         self.start_time = None
         self.run_loop = True
         self.start_loop = True

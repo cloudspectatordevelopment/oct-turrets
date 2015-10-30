@@ -24,3 +24,12 @@ LOGGING_CONFIG = {
         }
     }
 }
+
+REQUIRED_CONFIG_KEYS = [
+    'name',
+    'canons',
+    'script',
+    'hq_address',
+    'hq_rc',
+    'hq_publisher'
+]

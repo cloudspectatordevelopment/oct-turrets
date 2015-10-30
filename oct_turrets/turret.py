@@ -68,7 +68,7 @@ class Turret(BaseTurret):
         self.send_status()
 
         if 'rampup' in self.config:
-            rampup = float(self.config['rampup']) / float(self.config['canons'])
+            rampup = float(self.config.get('rampup', 0)) / float(self.config['canons'])
         else:
             rampup = 0
 
