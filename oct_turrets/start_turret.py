@@ -12,8 +12,9 @@ log = logging.getLogger(__name__)
 def start():
 
     parser = argparse.ArgumentParser(description='Give parameters for start a turret instance')
-    parser.add_argument('--config-file', type=str, default='', help='path for config_file')
-    parser.add_argument('--tar', type=str, default='', help='Path for the tarball')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--config-file', type=str, default='', help='path for config_file')
+    group.add_argument('--tar', type=str, default='', help='Path for the tarball')
     args = parser.parse_args()
 
     if args.config_file == '' and args.tar == '':
