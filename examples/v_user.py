@@ -1,4 +1,3 @@
-from oct.core.generic import GenericTransaction
 from oct_turrets.base import BaseTransaction
 import random
 import time
