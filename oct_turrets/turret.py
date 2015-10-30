@@ -7,7 +7,6 @@ import traceback
 from oct_turrets.base import BaseTurret
 from oct_turrets.canon import Canon
 
-logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
@@ -26,7 +25,6 @@ class Turret(BaseTurret):
         """Reply to the master by sending the current status
         """
         if not self.already_responded or self.status != self.READY:
-            log.info("Sending %s status to master", self.status)
             reply = self.build_status_message()
             self.result_collector.send_json(reply)
 
@@ -121,7 +119,7 @@ class Turret(BaseTurret):
         log.info("Sending stop signal to canons...")
         for i in self.canons:
             i.run_loop = False
-        print("Waiting for all canons to finish")
+        log.info("Waiting for all canons to finish")
         for i in self.canons:
             i.join()
 
