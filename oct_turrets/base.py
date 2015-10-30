@@ -4,7 +4,7 @@ import six
 import zmq
 import json
 import uuid
-import os.path
+import os
 from threading import Thread
 
 from oct_turrets.utils import load_file
@@ -32,8 +32,10 @@ class BaseTurret(object):
         else:
             self.config = json.loads(config_file)
 
+        cfg_path = os.path.dirname(config_file)
+
         self.canons = []
-        self.script_module = load_file(self.config['script'])
+        self.script_module = load_file(os.path.join(cfg_path, self.config['script']))
         self.start_time = None
         self.run_loop = True
         self.start_loop = True
