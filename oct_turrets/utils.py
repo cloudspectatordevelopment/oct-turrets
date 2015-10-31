@@ -1,6 +1,11 @@
 import os
 import imp
 import inspect
+import json
+import tempfile
+
+from oct_turrets.config import REQUIRED_CONFIG_KEYS
+from oct_turrets.exceptions import InvalidConfiguration
 
 
 def is_test_valid(test_module):
@@ -50,3 +55,52 @@ def load_file(file_name):
         raise ImportError("File does not exists: {}".format(file_name))
     realpath = os.path.realpath(os.path.abspath(file_name))
     return load_module(realpath)
+
+
+def validate_conf(config_file):
+    """Check a configuration file in json format and return the loaded json.
+    If a required key is not present in the file or if the file does not exists a InvalidConfiguration exception
+    will be raised
+
+    :param str config_file: the full config.json path
+    :param str tar: the full tar file path
+    :return: the loaded config object
+    :rtype: dict
+    :raise: InvalidConfig
+    """
+
+    # check if the file exists
+    if not os.path.isfile(config_file):
+        raise InvalidConfiguration("The given configuration file does not exist")
+
+    with open(config_file) as f:
+        data = json.load(f)
+
+    for key in REQUIRED_CONFIG_KEYS:
+        if key not in data:
+            raise InvalidConfiguration("Missing required configuration key %s" % key)
+
+    return data
+
+
+def extract_tarfile(tar, filename):
+    """Extract the needed file from the tar archive in the temp folder and return the file path
+
+    :param tar: the opened tar object
+    :param filename str: the name of the file to extract
+    """
+    path = os.path.join(tempfile.gettempdir(), filename)
+    tar.extract(filename, tempfile.gettempdir())
+    return path
+
+
+def clean_tar_tmp(config=None):
+    """This method will try to remove temp files from extracted tar
+    """
+
+    try:
+        os.remove(os.path.join(tempfile.gettempdir(), 'config.json'))
+        if config:
+            os.remove(os.path.join(tempfile.gettempdir(), config['script']))
+    except OSError:
+        pass  # files already removed

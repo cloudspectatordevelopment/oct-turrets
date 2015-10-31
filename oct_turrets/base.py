@@ -1,8 +1,13 @@
+from __future__ import unicode_literals
+
+import six
 import zmq
 import json
+import uuid
+import os
 from threading import Thread
 
-from utils import load_file
+from oct_turrets.utils import load_file
 
 
 class BaseTurret(object):
@@ -12,30 +17,85 @@ class BaseTurret(object):
     :param hq_pub_port int: the port of the publish socket in the HQ
     :param hq_rc_port int: the port of the result collector in the HQ
     """
-    def __init__(self, hq_address, hq_pub_port, hq_rc_port, script_file, config_file):
+
+    READY = 'ready'
+    RUNNING = 'Running'
+    ABORTED = 'Aborted'
+    INIT = 'Initialized'
+    KILLED = 'Killed'
+
+    def __init__(self, config, script_module):
+
+        self.config = config
         self.canons = []
-        self.script_module = load_file(script_file)
+        self.script_module = script_module
         self.start_time = None
         self.run_loop = True
         self.start_loop = True
+        self.already_responded = False
+        self.uuid = six.text_type(uuid.uuid4())
+        self.commands = {}
+        self.status = self.INIT
 
-        with open(config_file) as f:
-            self.config = json.load(f)
+        self.setup_sockets()
 
+        self.init_commands()
+
+    def init_commands(self):
+        """Initialize the commands dictionnary. This dict will be used when master send a command to interpret them
+        """
+        pass
+
+    def setup_sockets(self):
+        """Init and connect all the turrets
+        """
         context = zmq.Context()
 
         self.poller = zmq.Poller()
         self.local_result = context.socket(zmq.PULL)
-        self.local_result.bind("ipc://turret")
+        self.local_result.bind("ipc://turret-{}".format(self.uuid))
 
         self.master_publisher = context.socket(zmq.SUB)
-        self.master_publisher.connect("tcp://{}:{}".format(hq_address, hq_pub_port))
+        self.master_publisher.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_publisher']))
+        self.master_publisher.setsockopt_string(zmq.SUBSCRIBE, '')
+        self.master_publisher.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
 
         self.result_collector = context.socket(zmq.PUSH)
-        self.result_collector.connect("tcp://{}:{}".format(hq_address, hq_rc_port))
+        self.result_collector.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
 
         self.poller.register(self.local_result, zmq.POLLIN)
         self.poller.register(self.master_publisher, zmq.POLLIN)
+
+    def close_sockets(self):
+        """Close all the sockets
+        """
+        self.local_result.close()
+        self.master_publisher.close()
+        self.result_collector.close()
+
+    def build_status_message(self):
+        data = {
+            'turret': self.config['name'],
+            'status': self.status,
+            'uuid': self.uuid,
+            'rampup': self.config['rampup'],
+            'script': self.config['script'],
+            'canons': self.config['canons']
+        }
+        return data
+
+    def find_command(self, payload):
+        """Execute the given command by searching it in the self.commands property.
+
+        :param payload str: the dict containing the message from the master
+        :return: True if the command exists, false if the payload does not contain a command or the command is not found
+        :rtype: bool
+        """
+        if 'command' in payload:
+            command = self.commands.get(payload['command'])
+            return command
+        print("The message does not contain a command")
+        return None
 
     def start(self):
         """Start the turret and wait for the master to call the run method
@@ -64,15 +124,15 @@ class BaseCanon(Thread):
     :param script_module: the module containing the test
     """
 
-    def __init__(self, start_time, run_time, script_module):
+    def __init__(self, start_time, script_module, turret_uuid):
         super(BaseCanon, self).__init__()
         self.start_time = start_time
-        self.run_time = run_time
         self.script_module = script_module
+        self.run_loop = True
 
         context = zmq.Context()
         self.result_socket = context.socket(zmq.PUSH)
-        self.result_socket.connect("ipc://turret")
+        self.result_socket.connect("ipc://turret-{}".format(turret_uuid))
 
     def run(self):
         """The main run method for the canon
