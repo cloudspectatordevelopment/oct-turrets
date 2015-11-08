@@ -1,10 +1,6 @@
 from oct_turrets.base import BaseTransaction
 import random
 import time
-import os
-
-
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../')
 
 
 class Transaction(BaseTransaction):
