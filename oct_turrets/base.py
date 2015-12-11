@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import six
 import zmq
-import json
 import uuid
-import os
 from threading import Thread
-
-from oct_turrets.utils import load_file
 
 
 class BaseTurret(object):
@@ -49,18 +45,18 @@ class BaseTurret(object):
     def setup_sockets(self):
         """Init and connect all the turrets
         """
-        context = zmq.Context()
+        self.context = zmq.Context()
 
         self.poller = zmq.Poller()
-        self.local_result = context.socket(zmq.PULL)
-        self.local_result.bind("ipc://turret-{}".format(self.uuid))
+        self.local_result = self.context.socket(zmq.PULL)
+        self.local_result.bind("inproc://turret")
 
-        self.master_publisher = context.socket(zmq.SUB)
+        self.master_publisher = self.context.socket(zmq.SUB)
         self.master_publisher.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_publisher']))
         self.master_publisher.setsockopt_string(zmq.SUBSCRIBE, '')
         self.master_publisher.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
 
-        self.result_collector = context.socket(zmq.PUSH)
+        self.result_collector = self.context.socket(zmq.PUSH)
         self.result_collector.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
 
         self.poller.register(self.local_result, zmq.POLLIN)
@@ -124,15 +120,14 @@ class BaseCanon(Thread):
     :param script_module: the module containing the test
     """
 
-    def __init__(self, start_time, script_module, turret_uuid):
+    def __init__(self, start_time, script_module, turret_uuid, context):
         super(BaseCanon, self).__init__()
         self.start_time = start_time
         self.script_module = script_module
         self.run_loop = True
 
-        context = zmq.Context()
         self.result_socket = context.socket(zmq.PUSH)
-        self.result_socket.connect("ipc://turret-{}".format(turret_uuid))
+        self.result_socket.connect("inproc://turret")
 
     def run(self):
         """The main run method for the canon
