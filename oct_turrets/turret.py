@@ -82,7 +82,7 @@ class Turret(BaseTurret):
         try:
             while self.run_loop:
                 if len(self.canons) < self.config['canons'] and time.time() - last_insert >= rampup:
-                    canon = Canon(self.start_time, self.script_module, self.uuid)
+                    canon = Canon(self.start_time, self.script_module, self.uuid, self.context)
                     canon.daemon = True
                     self.canons.append(canon)
                     canon.start()
@@ -141,4 +141,5 @@ class Turret(BaseTurret):
             i.run_loop = False
         self.status = self.KILLED
         self.send_status()
+        self.close_sockets()
         sys.exit(1)
