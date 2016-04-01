@@ -27,7 +27,7 @@ LOGGING_CONFIG = {
 
 REQUIRED_CONFIG_KEYS = [
     'name',
-    'canons',
+    'cannons',
     'script',
     'hq_address',
     'hq_rc',

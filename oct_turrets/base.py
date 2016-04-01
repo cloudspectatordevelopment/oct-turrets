@@ -23,7 +23,7 @@ class BaseTurret(object):
     def __init__(self, config, script_module):
 
         self.config = config
-        self.canons = []
+        self.cannons = []
         self.script_module = script_module
         self.start_time = None
         self.run_loop = True
@@ -76,7 +76,7 @@ class BaseTurret(object):
             'uuid': self.uuid,
             'rampup': self.config['rampup'],
             'script': self.config['script'],
-            'canons': self.config['canons']
+            'cannons': self.config['cannons']
         }
         return data
 
@@ -112,25 +112,26 @@ class BaseTurret(object):
         raise NotImplementedError("run method must be implemented")
 
 
-class BaseCanon(Thread):
-    """The base canon class, inherit from thread
+class BaseCannon(Thread):
+    """The base cannon class, inherit from thread
 
     :param start_time int: the start_time of the test
     :param run_time int: the total run time for the script in second
     :param script_module: the module containing the test
     """
 
-    def __init__(self, start_time, script_module, turret_uuid, context):
-        super(BaseCanon, self).__init__()
+    def __init__(self, start_time, script_module, turret_uuid, context, config):
+        super(BaseCannon, self).__init__()
         self.start_time = start_time
         self.script_module = script_module
         self.run_loop = True
+        self.config = config
 
         self.result_socket = context.socket(zmq.PUSH)
         self.result_socket.connect("inproc://turret")
 
     def run(self):
-        """The main run method for the canon
+        """The main run method for the cannon
         """
         raise NotImplementedError("run method must be implemented")
 
@@ -139,8 +140,9 @@ class BaseTransaction(object):
     """The base transaction class for writing tests
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, config):
+        self.config = config
+        self.custom_timers = {}
 
     def setup(self):
         """This method will be call before the run method, use it to setup all needed datas.
