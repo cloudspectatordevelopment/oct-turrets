@@ -11,11 +11,6 @@ compatibilty and pyzmq for the communication with the HQ (oct-core)
 The turret will be in charge of running the tests an simulate multiples users, but it only need a configuration and a
 test file to run.
 
-Python Version | Tested |
--------------- | -------|
-Python >= 2.7.x|OK|
-Python >= 3.4|OK|
-
 ## Installation
 
 Simply run :
@@ -46,3 +41,73 @@ oct-turret-start --config-file config.json
 ```
 oct-turret-start --tar my_turret.tar
 ```
+
+## Writing tests
+
+A test with the turret only require a simple transaction class like this :
+
+
+```
+from oct_turrets.base import BaseTransaction
+from oct_turrets.tools import ActionTimer
+import random
+import time
+
+
+class Transaction(BaseTransaction):
+    def __init__(self, config):
+        super(Transaction, self).__init__(config)
+
+    def setup(self):
+        """Setup data or objects here
+        """
+        pass
+
+    def run(self):
+        r = random.uniform(1, 2)
+        time.sleep(r)
+        with ActionTimer(self, 'a timer'):
+            time.sleep(r)
+
+    def tear_down(self):
+        """Clear cache or reset objects, etc. Anything that must be done after
+        the run method and before its next execution
+        """
+        pass
+
+
+if __name__ == '__main__':
+    trans = Transaction({})
+    trans.run()
+    print(trans.custom_timers)
+```
+
+### Methods
+
+* ``__init__`` only config param is mandatory, you're free beside this
+* ``setup`` everything in setup will be executed before each ``run`` call. Note that time taken in setup is not included in reports
+* ``run`` main method, everything executed in this method will increase the global timer
+* ``tear_down`` like setup but will be executed after each ``run`` call
+
+### Tools
+
+*ActionTimer*
+
+Context manager used to simply create custom timers for specific actions. For exemple :
+
+```
+def run(self):
+    r = request.get(home)
+    r = request.post(form)
+
+    with ActionTimer(self, 'connection'):
+        r = request.post(login)
+
+    r = request.get(about)
+```
+
+In this example, a new custom timer named "connection" will be created in the ``custom_timers`` property of the transaction.
+It will only contain the time took to execute the post request to login page.
+
+*NB*: Global transactions timers include *all* actions, even ones in custom timers, custom timers are here to add granularity to the final
+report
