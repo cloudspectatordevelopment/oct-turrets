@@ -49,7 +49,7 @@ A test with the turret only require a simple transaction class like this :
 
 ```python
 from oct_turrets.base import BaseTransaction
-from oct_turrets.tools import ActionTimer
+from oct_turrets.tools import CustomTimer
 import random
 import time
 
@@ -66,7 +66,7 @@ class Transaction(BaseTransaction):
     def run(self):
         r = random.uniform(1, 2)
         time.sleep(r)
-        with ActionTimer(self, 'a timer'):
+        with CustomTimer(self, 'a timer'):
             time.sleep(r)
 
     def tear_down(self):
@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
 ### Tools
 
-*ActionTimer*
+*CustomTimer*
 
 Context manager used to simply create custom timers for specific actions. For exemple :
 
@@ -100,7 +100,7 @@ def run(self):
     r = request.get(home)
     r = request.post(form)
 
-    with ActionTimer(self, 'connection'):
+    with CustomTimer(self, 'connection'):
         r = request.post(login)
 
     r = request.get(about)

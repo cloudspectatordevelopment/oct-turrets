@@ -1,7 +1,7 @@
 import time
 
 
-class ActionTimer(object):
+class CustomTimer(object):
     def __init__(self, transaction, name):
         if not hasattr(transaction, 'custom_timers'):
             transaction.custom_timers = {}
