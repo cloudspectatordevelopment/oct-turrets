@@ -32,6 +32,7 @@ def start():
                 config = validate_conf(config_file)
             except InvalidConfiguration:
                 clean_tar_tmp()
+                log.error("you need a valid config.json or a valid tar archive")
                 return None
             module_file = extract_tarfile(tar, config['script'])
     elif args.config_file != '' and os.path.isfile(args.config_file):

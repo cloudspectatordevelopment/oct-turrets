@@ -5,7 +5,7 @@ import logging
 import traceback
 
 from oct_turrets.base import BaseTurret
-from oct_turrets.canon import Canon
+from oct_turrets.cannon import Cannon
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class Turret(BaseTurret):
         self.send_status()
 
         if 'rampup' in self.config:
-            rampup = float(self.config.get('rampup', 0)) / float(self.config['canons'])
+            rampup = float(self.config.get('rampup', 0)) / float(self.config['cannons'])
         else:
             rampup = 0
 
@@ -81,11 +81,11 @@ class Turret(BaseTurret):
 
         try:
             while self.run_loop:
-                if len(self.canons) < self.config['canons'] and time.time() - last_insert >= rampup:
-                    canon = Canon(self.start_time, self.script_module, self.uuid, self.context)
-                    canon.daemon = True
-                    self.canons.append(canon)
-                    canon.start()
+                if len(self.cannons) < self.config['cannons'] and time.time() - last_insert >= rampup:
+                    cannon = Cannon(self.start_time, self.script_module, self.uuid, self.context, self.config)
+                    cannon.daemon = True
+                    self.cannons.append(cannon)
+                    cannon.start()
                     last_insert = time.time()
 
                 socks = dict(self.poller.poll(timeout))
@@ -116,14 +116,14 @@ class Turret(BaseTurret):
     def reset_turret(self):
         """Reset the turret and set it ready for the next test
         """
-        log.info("Sending stop signal to canons...")
-        for i in self.canons:
+        log.info("Sending stop signal to cannons...")
+        for i in self.cannons:
             i.run_loop = False
-        log.info("Waiting for all canons to finish")
-        for i in self.canons:
+        log.info("Waiting for all cannons to finish")
+        for i in self.cannons:
             i.join()
 
-        self.canons = []
+        self.cannons = []
         self.already_responded = False
         self.start_loop = True
         self.run_loop = True
@@ -137,7 +137,7 @@ class Turret(BaseTurret):
     def kill(self, msg=None):
         """Kill the turret
         """
-        for i in self.canons:
+        for i in self.cannons:
             i.run_loop = False
         self.status = self.KILLED
         self.send_status()

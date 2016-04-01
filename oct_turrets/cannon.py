@@ -1,15 +1,15 @@
 import time
 
-from oct_turrets.base import BaseCanon
+from oct_turrets.base import BaseCannon
 
 
-class Canon(BaseCanon):
+class Cannon(BaseCannon):
 
     def run(self):
         """The main run method of the canon
         """
         elapsed = 0
-        trans = self.script_module.Transaction()
+        trans = self.script_module.Transaction(self.config)
         trans.custom_timers = {}
 
         while self.run_loop:
