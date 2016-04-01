@@ -47,7 +47,7 @@ oct-turret-start --tar my_turret.tar
 A test with the turret only require a simple transaction class like this :
 
 
-```
+```python
 from oct_turrets.base import BaseTransaction
 from oct_turrets.tools import ActionTimer
 import random
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
 Context manager used to simply create custom timers for specific actions. For exemple :
 
-```
+```python
 def run(self):
     r = request.get(home)
     r = request.post(form)
