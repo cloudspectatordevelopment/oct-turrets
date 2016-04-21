@@ -2,6 +2,7 @@ import os
 import imp
 import inspect
 import json
+import shutil
 import tempfile
 
 from oct_turrets.config import REQUIRED_CONFIG_KEYS
@@ -83,24 +84,12 @@ def validate_conf(config_file):
     return data
 
 
-def extract_tarfile(tar, filename):
-    """Extract the needed file from the tar archive in the temp folder and return the file path
-
-    :param tar: the opened tar object
-    :param filename str: the name of the file to extract
-    """
-    path = os.path.join(tempfile.gettempdir(), filename)
-    tar.extract(filename, tempfile.gettempdir())
-    return path
-
-
-def clean_tar_tmp(config=None):
+def clean_tar_tmp(dir_name, is_tar):
     """This method will try to remove temp files from extracted tar
     """
-
+    if not is_tar:
+        return None
     try:
-        os.remove(os.path.join(tempfile.gettempdir(), 'config.json'))
-        if config:
-            os.remove(os.path.join(tempfile.gettempdir(), config['script']))
+        shutil.rmtree(dir_name)
     except OSError:
         pass  # files already removed
