@@ -20,7 +20,7 @@ class BaseTurret(object):
     INIT = 'Initialized'
     KILLED = 'Killed'
 
-    def __init__(self, config, script_module, unique_id):
+    def __init__(self, config, script_module, unique_id=None):
 
         self.config = config
         self.cannons = []
@@ -29,7 +29,7 @@ class BaseTurret(object):
         self.run_loop = True
         self.start_loop = True
         self.already_responded = False
-        self.uuid = unique_id
+        self.uuid = unique_id or six.text_type(uuid.uuid4())
         self.commands = {}
         self.status = self.INIT
 
