@@ -7,7 +7,7 @@ setup(
     version=__version__,
     author='Emmanuel Valette',
     packages=['oct_turrets'],
-    include_package_data = True,
+    include_package_data=True,
     description='Client tester part for oct',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -22,6 +22,6 @@ setup(
         'six'
     ],
     entry_points={'console_scripts': [
-        'oct-turrets-start = oct_turrets.start_turret:start'
+        'oct-turrets-start = oct_turrets.start_turret:main'
     ]},
 )
