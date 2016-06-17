@@ -68,6 +68,7 @@ class BaseTurret(object):
         self.local_result.close()
         self.master_publisher.close()
         self.result_collector.close()
+        self.context.destroy()
 
     def build_status_message(self):
         data = {
@@ -128,7 +129,7 @@ class BaseCannon(Thread):
         self.config = config
 
         self.result_socket = context.socket(zmq.PUSH)
-        self.result_socket.connect("inproc://turret")
+        self.result_socket.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
 
     def run(self):
         """The main run method for the cannon
