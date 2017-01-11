@@ -4,8 +4,7 @@ import json
 import logging
 import traceback
 
-from oct_turrets.base import BaseTurret
-from oct_turrets.cannon import Cannon
+from oct_turrets.base import BaseTurret, get_cannon_class
 
 log = logging.getLogger(__name__)
 
@@ -79,6 +78,7 @@ class Turret(BaseTurret):
         else:
             timeout = 1000
 
+        Cannon = get_cannon_class(self.config.get('cannon_class'))
         try:
             while self.run_loop:
                 if len(self.cannons) < self.config['cannons'] and time.time() - last_insert >= rampup:

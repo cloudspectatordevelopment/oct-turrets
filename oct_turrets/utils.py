@@ -4,6 +4,7 @@ import inspect
 import json
 import shutil
 import tempfile
+import importlib
 
 from oct_turrets.config import REQUIRED_CONFIG_KEYS
 from oct_turrets.exceptions import InvalidConfiguration
@@ -93,3 +94,11 @@ def clean_tar_tmp(dir_name, is_tar):
         shutil.rmtree(dir_name)
     except OSError:
         pass  # files already removed
+
+
+def import_object(path):
+    module_path = '.'.join(path.split('.')[:-1])
+    object_name = path.split('.')[-1]
+    module = importlib.import_module(module_path)
+    obj = getattr(module, object_name)
+    return obj
