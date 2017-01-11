@@ -5,6 +5,21 @@ import zmq
 import uuid
 from threading import Thread
 
+from oct_turrets import utils
+
+DEFAULT_TURRET_CLASS = 'oct_turrets.turret.Turret'
+DEFAULT_CANNON_CLASS = 'oct_turrets.cannon.Cannon'
+
+
+def get_turret_class(path=None):
+    path = path or DEFAULT_TURRET_CLASS
+    return utils.import_object(path)
+
+
+def get_cannon_class(path=None):
+    path = path or DEFAULT_CANNON_CLASS
+    return utils.import_object(path)
+
 
 class BaseTurret(object):
     """The base turret class

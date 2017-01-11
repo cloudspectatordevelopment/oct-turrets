@@ -6,7 +6,7 @@ import logging
 import tarfile
 import tempfile
 import argparse
-from oct_turrets.turret import Turret
+from oct_turrets.base import get_turret_class
 from oct_turrets.exceptions import InvalidConfiguration, InvalidTarTurret
 from oct_turrets.utils import validate_conf, clean_tar_tmp, load_file
 
@@ -76,6 +76,7 @@ def start(args):
     else:
         module, config = from_config(args.config)
 
+    Turret = get_turret_class(config.get('turret_class'))
     turret = Turret(config, module, unique_id)
 
     try:
