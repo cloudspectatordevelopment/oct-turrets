@@ -78,15 +78,22 @@ class Turret(BaseTurret):
         else:
             timeout = 1000
 
+        # Setup cannons
         Cannon = get_cannon_class(self.config.get('cannon_class'))
+        for i in range(self.config['cannons']):
+            cannon = Cannon(self.start_time, self.script_module, self.uuid, self.context, self.config)
+            cannon.setup()
+            cannon.daemon = True
+            self.cannons.append(cannon)
         try:
+            cannon_index = 0
             while self.run_loop:
-                if len(self.cannons) < self.config['cannons'] and time.time() - last_insert >= rampup:
-                    cannon = Cannon(self.start_time, self.script_module, self.uuid, self.context, self.config)
+                if cannon_index < len(self.cannons) and time.time() - last_insert >= rampup:
+                    cannon = self.cannons[cannon_index]
                     cannon.daemon = True
-                    self.cannons.append(cannon)
                     cannon.start()
                     last_insert = time.time()
+                    cannon_index += 1
 
                 socks = dict(self.poller.poll(timeout))
                 if self.master_publisher in socks:
@@ -122,7 +129,9 @@ class Turret(BaseTurret):
         log.info("Waiting for all cannons to finish")
         for i in self.cannons:
             i.join()
-
+        log.info("Tear down all cannons")
+        for cannon in self.cannons:
+            cannon.tear_down()
         self.cannons = []
         self.already_responded = False
         self.start_loop = True

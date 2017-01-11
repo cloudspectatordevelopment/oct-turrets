@@ -142,22 +142,37 @@ class BaseCannon(Thread):
         self.script_module = script_module
         self.run_loop = True
         self.config = config
+        self.transaction_context = {}
 
         self.result_socket = context.socket(zmq.PUSH)
         self.result_socket.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
+
+    def setup(self):
+        """This method will be call before the run method, use it to setup all needed datas.
+        The setup time will not be included in the scriptrun_time
+        """
+        pass
 
     def run(self):
         """The main run method for the cannon
         """
         raise NotImplementedError("run method must be implemented")
 
+    def tear_down(self):
+        """This method will be call once the run method has ended. Since the transaction instance will never be
+        destroyed before the end of the test, use this method to clean and reset all variables, etc.
+        The tear down time will not be included in the scriptrun_time
+        """
+        pass
+
 
 class BaseTransaction(object):
     """The base transaction class for writing tests
     """
 
-    def __init__(self, config):
+    def __init__(self, config, context=None):
         self.config = config
+        self.context = context or {}
         self.custom_timers = {}
 
     def setup(self):
