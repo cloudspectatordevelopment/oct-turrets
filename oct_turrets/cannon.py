@@ -9,7 +9,8 @@ class Cannon(BaseCannon):
         """The main run method of the canon
         """
         elapsed = 0
-        trans = self.script_module.Transaction(self.config)
+        trans = self.script_module.Transaction(self.config,
+                                               self.transaction_context)
         trans.custom_timers = {}
 
         while self.run_loop:
