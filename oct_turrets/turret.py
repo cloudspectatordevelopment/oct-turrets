@@ -19,6 +19,7 @@ class Turret(BaseTurret):
         self.commands['start'] = self.run
         self.commands['status_request'] = self.send_status
         self.commands['kill'] = self.kill
+        self.commands['set_transaction_context'] = self.set_transaction_context
 
     def send_status(self, msg=None):
         """Reply to the master by sending the current status
@@ -81,7 +82,8 @@ class Turret(BaseTurret):
         # Setup cannons
         Cannon = get_cannon_class(self.config.get('cannon_class'))
         for i in range(self.config['cannons']):
-            cannon = Cannon(self.start_time, self.script_module, self.uuid, self.context, self.config)
+            cannon = Cannon(self.start_time, self.script_module, self.uuid, self.context, self.config,
+                            transaction_context=self.transaction_context)
             cannon.setup()
             cannon.daemon = True
             self.cannons.append(cannon)
