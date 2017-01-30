@@ -51,6 +51,7 @@ class BaseTurret(object):
         self.setup_sockets()
 
         self.init_commands()
+        self.transaction_context = {}
 
     def init_commands(self):
         """Initialize the commands dictionnary. This dict will be used when master send a command to interpret them
@@ -127,6 +128,9 @@ class BaseTurret(object):
         """
         raise NotImplementedError("run method must be implemented")
 
+    def set_transaction_context(self, transaction_context):
+        self.transaction_context.update(transaction_context)
+
 
 class BaseCannon(Thread):
     """The base cannon class, inherit from thread
@@ -136,13 +140,14 @@ class BaseCannon(Thread):
     :param script_module: the module containing the test
     """
 
-    def __init__(self, start_time, script_module, turret_uuid, context, config):
+    def __init__(self, start_time, script_module, turret_uuid, context, config,
+                 transaction_context):
         super(BaseCannon, self).__init__()
         self.start_time = start_time
         self.script_module = script_module
         self.run_loop = True
         self.config = config
-        self.transaction_context = {}
+        self.transaction_context = transaction_context
 
         self.result_socket = context.socket(zmq.PUSH)
         self.result_socket.connect("tcp://{}:{}".format(self.config['hq_address'], self.config['hq_rc']))
