@@ -83,25 +83,36 @@ class Turret(BaseTurret):
         Cannon = get_cannon_class(self.config.get('cannon_class'))
         for i in range(self.config['cannons']):
             cannon = Cannon(self.start_time, self.script_module, self.uuid, self.context, self.config,
-                            transaction_context=self.transaction_context)
+                            transaction_context=self.transaction_context,
+                            local_queue=self.local_queue)
             cannon.setup()
             cannon.daemon = True
             self.cannons.append(cannon)
         try:
             cannon_index = 0
+            cannons_finished = 0
             while self.run_loop:
                 if cannon_index < len(self.cannons) and time.time() - last_insert >= rampup:
                     cannon = self.cannons[cannon_index]
                     cannon.daemon = True
                     cannon.start()
                     last_insert = time.time()
+                    log.info('Started cannon #%s', cannon_index+1)
                     cannon_index += 1
-
+                # Check communication between Turret and Cannons
+                if not self.local_queue.empty() and self.config['cannons'] == len(self.cannons):
+                    msg = self.local_queue.get()
+                    # If all cannons has finished stop the loop
+                    if 'status' in msg and msg['status'] == 'finished':
+                        cannons_finished += 1
+                        log.info('%d/%d finished cannon(s)', cannons_finished, self.config['cannons'])
+                        if cannons_finished == self.config['cannons']:
+                            self.run_loop = False
                 socks = dict(self.poller.poll(timeout))
                 if self.master_publisher in socks:
                     data = self.master_publisher.recv_string()
                     data = json.loads(data)
-                    if 'command' in data and data['command'] == 'stop':  # not managed, must break the loop
+                    if 'command' in data and data['command'] == 'stop':
                         log.info("Exiting loop, premature stop")
                         self.run_loop = False
                         break
@@ -113,6 +124,7 @@ class Turret(BaseTurret):
                     results = self.local_result.recv_json()
                     self.send_result(results)
 
+            log.info("Sending finished status to HQ")
             self.reset_turret()
 
         except (Exception, RuntimeError, KeyboardInterrupt) as e:
@@ -132,17 +144,23 @@ class Turret(BaseTurret):
         for i in self.cannons:
             i.join()
         log.info("Tear down all cannons")
-        for cannon in self.cannons:
+        for i, cannon in enumerate(self.cannons):
+            log.info("Tear down cannon #%d" % (i+1))
             cannon.tear_down()
+        log.info("All cannons are tear down")
+        self.status = self.FINISHED
+        self.send_status()
         self.cannons = []
         self.already_responded = False
         self.start_loop = True
         self.run_loop = True
 
         # clear sockets
+        log.info("Closing connection to HQ")
         self.close_sockets()
-        self.setup_sockets()
+        log.info("Connection to HQ closed")
 
+        self.setup_sockets()
         self.start()
 
     def kill(self, msg=None):

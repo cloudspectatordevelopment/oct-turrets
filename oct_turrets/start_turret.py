@@ -59,7 +59,8 @@ def from_config(config_path):
     """
     config = validate_conf(config_path)
     cfg_path = os.path.dirname(config_path)
-    module_file = os.path.join(cfg_path, config['script'])
+    module_dir = config['script_dir'] if 'script_dir' in config else cfg_path
+    module_file = os.path.join(module_dir, config['script'])
     module = load_file(module_file)
     return module, config
 
@@ -72,15 +73,21 @@ def start(args):
         dir_name = "{}-{}".format(os.path.basename(args.tar).split('.')[0], unique_id)
         dir_name = os.path.join(tempfile.gettempdir(), dir_name)
         module, config = from_tar(args.tar, unique_id, dir_name)
+        if args.config_file is not None:
+            _, config = from_config(args.config_file)
         is_tar = True
     else:
-        module, config = from_config(args.config)
+        module, config = from_config(args.config_file)
+        dir_name = None
 
     Turret = get_turret_class(config.get('turret_class'))
     turret = Turret(config, module, unique_id)
 
     try:
-        turret.start()
+        if args.run:
+            turret.run()
+        else:
+            turret.start()
     except (Exception, KeyboardInterrupt):
         clean_tar_tmp(dir_name, is_tar)
         raise
@@ -91,9 +98,9 @@ def start(args):
 def main():
 
     parser = argparse.ArgumentParser(description='Give parameters for start a turret instance')
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--config-file', type=str, default=None, help='path for json configuration file')
-    group.add_argument('--tar', type=str, default=None, help='Path for the tarball to use')
+    parser.add_argument('--config-file', type=str, default=None, help='path for json configuration file')
+    parser.add_argument('--tar', type=str, default=None, help='Path for the tarball to use')
+    parser.add_argument('--run', action='store_true', default=False, help='Run stand-alone turret')
     args = parser.parse_args()
 
     if args.config_file is None and args.tar is None:
